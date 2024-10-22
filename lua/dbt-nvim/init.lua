@@ -25,7 +25,6 @@ local function create_split_buffer()
 	local buf = vim.api.nvim_create_buf(false, true) -- false for not listed, true for scratch buffer
 	vim.cmd('belowright split')
 	vim.api.nvim_win_set_buf(0, buf)
-	vim.api.nvim_set_option_value('wrap', true, { buf = buf })
 	vim.api.nvim_buf_set_keymap(buf, 'n', 'q', ':q<CR>', { noremap = true, silent = true })
 	vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
 	vim.api.nvim_set_option_value('buftype', 'nofile', { buf = buf })
