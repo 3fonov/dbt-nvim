@@ -5,6 +5,7 @@ D.setup = function()
 	vim.api.nvim_create_user_command('DbtCompile', function() D.compile() end, {})
 	vim.api.nvim_create_user_command('DbtModelYaml', function() D.model_yaml() end, {})
 	vim.api.nvim_create_user_command('DbtRun', function() D.run() end, {})
+	vim.api.nvim_create_user_command('DbtBuild', function() D.build() end, {})
 	vim.api.nvim_create_user_command('DbtRunFull', function() D.run_full() end, {})
 	vim.api.nvim_create_user_command('DbtTest', function() D.test() end, {})
 	vim.api.nvim_create_user_command('DbtListDownstreamModels', function() D.list_downstream_models() end, {})
@@ -101,7 +102,8 @@ end
 
 -- dbt command functions
 D.run = function() D._run_dbt('run') end
-D.run_full = function() D._run_dbt('run -f') end
+D.build = function() D._run_dbt('build') end
+D.run_full = function() D._run_dbt('run','-f') end
 D.test = function() D._run_dbt('test') end
 D.compile = function() D._run_dbt('compile') end
 D.model_yaml = function()
@@ -112,10 +114,10 @@ D.model_yaml = function()
 end
 
 -- Helper to run dbt commands with model selector
-D._run_dbt = function(command)
+D._run_dbt = function(command, params)
 	local model_name = D.get_model_name()
 	if model_name == nil then return end
-	stream_command_to_buffer({ 'dbt', command, '-s', model_name })
+	stream_command_to_buffer({ 'dbt', command, '-s', model_name , params})
 end
 
 -- Telescope-related functionality
