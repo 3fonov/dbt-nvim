@@ -89,7 +89,7 @@ local function stream_command_to_buffer(cmd)
 		end,
 		on_exit = function(_, exit_code, _)
 			vim.api.nvim_set_option_value('modifiable', true, { buf = buf })
-			vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "\nCommand exited with code: " .. exit_code })
+			vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "", "Command exited with code: " .. exit_code })
 			vim.api.nvim_set_option_value('modifiable', false, { buf = buf })
 			scroll_to_bottom(win)
 		end,
@@ -103,7 +103,7 @@ end
 -- dbt command functions
 D.run = function() D._run_dbt('run') end
 D.build = function() D._run_dbt('build') end
-D.run_full = function() D._run_dbt('run','-f') end
+D.run_full = function() D._run_dbt('run', '--full-refresh') end
 D.test = function() D._run_dbt('test') end
 D.compile = function() D._run_dbt('compile') end
 D.model_yaml = function()
@@ -117,7 +117,16 @@ end
 D._run_dbt = function(command, params)
 	local model_name = D.get_model_name()
 	if model_name == nil then return end
-	stream_command_to_buffer({ 'dbt', command, '-s', model_name , params})
+	local cmd = { 'dbt', command }
+	if params then
+		if type(params) == 'table' then
+			vim.list_extend(cmd, params)
+		else
+			table.insert(cmd, params)
+		end
+	end
+	vim.list_extend(cmd, { '-s', model_name })
+	stream_command_to_buffer(cmd)
 end
 
 -- Telescope-related functionality
@@ -184,10 +193,14 @@ D.list_downstream_models = function() D._list_models('+<selector>', 'Downstream 
 D._list_models = function(selector, title)
 	local model_name = D.get_model_name()
 	if model_name == nil then return end
-	local cmd = "dbt list -s " .. selector .. " --output json -q --output-keys unique_id original_file_path"
+	local selector_with_model = selector:gsub('<selector>', model_name)
+	local escaped_selector = vim.fn.shellescape(selector_with_model)
+	local cmd = string.format(
+		"dbt list -s %s --output json -q --output-keys unique_id original_file_path",
+		escaped_selector
+	)
 	local output = get_command_output_lines(cmd)
 	local entries, path_map = parse_dbt_json_lines(output)
 	populate_telescope(entries, path_map, title)
 end
 return D
-
