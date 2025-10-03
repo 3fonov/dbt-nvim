@@ -62,11 +62,15 @@ local function stream_command_to_buffer(cmd)
 			if data then
 				local sanitized_data = {}
 				for _, line in ipairs(data) do
-					local sanitized_line = sanitize_output(line)
-					if not is_timestamp_line(sanitized_line) then
-						table.insert(full_output, sanitized_line)
+					if line ~= nil then
+						local sanitized_line = sanitize_output(line):gsub('\r', '')
+						for _, segment in ipairs(vim.split(sanitized_line, '\n', { plain = true, trimempty = false })) do
+							if not is_timestamp_line(segment) then
+								table.insert(full_output, segment)
+							end
+							table.insert(sanitized_data, segment)
+						end
 					end
-					table.insert(sanitized_data, sanitized_line)
 				end
 				vim.api.nvim_set_option_value('modifiable', true, { buf = buf })
 				vim.api.nvim_buf_set_lines(buf, -1, -1, false, sanitized_data)
@@ -78,8 +82,12 @@ local function stream_command_to_buffer(cmd)
 			if data then
 				local sanitized_data = {}
 				for _, line in ipairs(data) do
-					local sanitized_line = sanitize_output(line)
-					table.insert(sanitized_data, sanitized_line)
+					if line ~= nil then
+						local sanitized_line = sanitize_output(line):gsub('\r', '')
+						for _, segment in ipairs(vim.split(sanitized_line, '\n', { plain = true, trimempty = false })) do
+							table.insert(sanitized_data, segment)
+						end
+					end
 				end
 				vim.api.nvim_set_option_value('modifiable', true, { buf = buf })
 				vim.api.nvim_buf_set_lines(buf, -1, -1, false, sanitized_data)
