@@ -28,7 +28,9 @@ Plug '3fonov/nvim-dbt-plugin'
 Using lazy:
 ```
 {
-  "3fonov/dbt-nvim"
+  "3fonov/dbt-nvim",
+  dependencies = { "nvim-telescope/telescope.nvim", "nvim-lua/plenary.nvim" },
+  config = true,
 }
 ```
 ### Usage
